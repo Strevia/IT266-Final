@@ -36,6 +36,8 @@ void SP_misc_teleporter_dest (edict_t *ent);
 // we use carnal knowledge of the maps to fix the coop spot targetnames to match
 // that of the nearest named single player spot
 
+void spectator_respawn(edict_t* ent);
+
 static void SP_FixCoopSpots (edict_t *self)
 {
 	edict_t	*spot;
@@ -501,8 +503,9 @@ player_die
 void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
 	int		n;
-
 	VectorClear (self->avelocity);
+
+	self->client->dead = 1;
 
 	self->takedamage = DAMAGE_YES;
 	self->movetype = MOVETYPE_TOSS;
@@ -1014,47 +1017,7 @@ void spectator_respawn (edict_t *ent)
 	// if the user wants to become a spectator, make sure he doesn't
 	// exceed max_spectators
 
-	if (ent->client->pers.spectator) {
-		char *value = Info_ValueForKey (ent->client->pers.userinfo, "spectator");
-		if (*spectator_password->string && 
-			strcmp(spectator_password->string, "none") && 
-			strcmp(spectator_password->string, value)) {
-			gi.cprintf(ent, PRINT_HIGH, "Spectator password incorrect.\n");
-			ent->client->pers.spectator = false;
-			gi.WriteByte (svc_stufftext);
-			gi.WriteString ("spectator 0\n");
-			gi.unicast(ent, true);
-			return;
-		}
-
-		// count spectators
-		for (i = 1, numspec = 0; i <= maxclients->value; i++)
-			if (g_edicts[i].inuse && g_edicts[i].client->pers.spectator)
-				numspec++;
-
-		if (numspec >= maxspectators->value) {
-			gi.cprintf(ent, PRINT_HIGH, "Server spectator limit is full.");
-			ent->client->pers.spectator = false;
-			// reset his spectator var
-			gi.WriteByte (svc_stufftext);
-			gi.WriteString ("spectator 0\n");
-			gi.unicast(ent, true);
-			return;
-		}
-	} else {
-		// he was a spectator and wants to join the game
-		// he must have the right password
-		char *value = Info_ValueForKey (ent->client->pers.userinfo, "password");
-		if (*password->string && strcmp(password->string, "none") && 
-			strcmp(password->string, value)) {
-			gi.cprintf(ent, PRINT_HIGH, "Password incorrect.\n");
-			ent->client->pers.spectator = true;
-			gi.WriteByte (svc_stufftext);
-			gi.WriteString ("spectator 1\n");
-			gi.unicast(ent, true);
-			return;
-		}
-	}
+	
 
 	// clear score on respawn
 	ent->client->pers.score = ent->client->resp.score = 0;
@@ -1104,6 +1067,8 @@ void PutClientInServer (edict_t *ent)
 	int		i;
 	client_persistant_t	saved;
 	client_respawn_t	resp;
+	int		dumbDeadFlag = ent->client->dead;
+	if (ent->client->respawned) return;
 
 	// find a spawn point
 	// do it before setting health back up, so farthest
@@ -1186,6 +1151,8 @@ void PutClientInServer (edict_t *ent)
 
 	// clear playerstate values
 	memset (&ent->client->ps, 0, sizeof(client->ps));
+	if (dumbDeadFlag)
+		ent->client->dead = 1;
 
 	client->ps.pmove.origin[0] = spawn_origin[0]*8;
 	client->ps.pmove.origin[1] = spawn_origin[1]*8;
@@ -1230,7 +1197,8 @@ void PutClientInServer (edict_t *ent)
 	VectorCopy (ent->s.angles, client->v_angle);
 
 	// spawn a spectator
-	if (client->pers.spectator) {
+	if (ent->client->dead) {
+		ent->client->respawned = 1;
 		client->chase_target = NULL;
 
 		client->resp.spectator = true;
@@ -1576,7 +1544,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	level.current_entity = ent;
 	client = ent->client;
-
+	//gi.centerprintf(ent, "YOUR ROLE IS: %d", ent->role);
 	if (level.intermissiontime)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;
@@ -1764,7 +1732,8 @@ void ClientBeginServerFrame (edict_t *ent)
 
 	if (deathmatch->value &&
 		client->pers.spectator != client->resp.spectator &&
-		(level.time - client->respawn_time) >= 5) {
+		(level.time - client->respawn_time) >= 5 &&
+		!client->respawned) {
 		spectator_respawn(ent);
 		return;
 	}
