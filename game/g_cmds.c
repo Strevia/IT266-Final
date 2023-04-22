@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "g_local.h"
 #include "m_player.h"
+#define MAXVOTES 16
 
 
 char *ClientTeam (edict_t *ent)
@@ -852,7 +853,6 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 
 	if (dedicated->value)
 		gi.cprintf(NULL, PRINT_CHAT, "%s", text);
-
 	for (j = 1; j <= game.maxclients; j++)
 	{
 		other = &g_edicts[j];
@@ -903,6 +903,77 @@ void Cmd_SetRole_f(edict_t* ent) {
 	p = gi.args();
 	ent->role = atoi(p);
 	gi.cprintf(ent, PRINT_HIGH, "Your role is %d", ent->role);
+}
+
+void Cmd_Vote(edict_t* ent) {
+	char* p;
+	gclient_t *client;
+	int num_clients = 0;
+	int votes[MAXVOTES] = { 0 };
+	if (game.maxclients > MAXVOTES) {
+		return;
+	}
+	p = gi.args();
+	if (strcmp(p, "start") == 0) {
+		for (int i = 0; i < game.maxclients; i++) {
+			client = &game.clients[i];
+			if (client->ping && !client->dead) {
+				gi.cprintf(ent, PRINT_HIGH, "%Client #%d exists\n", i);
+				num_clients++;
+				client->vote = 0;
+				client->voting = true;
+			}
+		}
+		gi.cprintf(ent, PRINT_HIGH, "Num clients: %d\n", num_clients);
+	}
+	else if (strcmp(p, "end") == 0) {
+
+		for (int i = 0; i < game.maxclients; i++) {
+			client = &game.clients[i];
+			if (!client->ping || client->dead) {
+				continue;
+			}
+			if (!client->voting) {
+				gi.cprintf(ent, PRINT_HIGH, "Can't end a vote that hasn't started\n");
+				return;
+			}
+			votes[client->vote]++;
+		}
+		int max_index = 1;
+		int tie = 0;
+		for (int i = 1; i < MAXVOTES; i++) {
+			gi.cprintf(ent, PRINT_HIGH, "%d votes for player %d\n", votes[i], i);
+			if (votes[i] > votes[max_index]) {
+				max_index = i;
+				tie = 0;
+			}
+			else if (votes[i] == votes[max_index] && i != 1) tie = 1;
+		}
+		if (tie) {
+			gi.cprintf(ent, PRINT_HIGH, "Tie, no elimination\n");
+			return;
+		}
+		int skip = 1;
+		for (int i = 0; i < game.maxclients; i++) {
+			client = &game.clients[i];
+			if (client->ping && !client->dead) {
+				max_index--;
+				if (max_index == 0) {
+					gi.cprintf(ent, PRINT_HIGH, "Player %d eliminated\n", i);
+					skip = 0;
+					client->dead = true;
+				}
+				client->voting = false;
+			}
+		}
+		if (skip) {
+			gi.cprintf(ent, PRINT_HIGH, "Vote skipped\n");
+		}
+	}
+	else {
+		int ourVote = atoi(p);
+		ent->client->vote = ourVote;
+	}
 }
 
 
@@ -995,6 +1066,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_PlayerList_f(ent);
 	else if (Q_stricmp(cmd, "role") == 0)
 		Cmd_SetRole_f(ent);
+	else if (Q_stricmp(cmd, "vote") == 0)
+		Cmd_Vote(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

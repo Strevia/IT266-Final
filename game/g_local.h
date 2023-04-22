@@ -962,6 +962,8 @@ struct gclient_s
 
 	qboolean	dead;
 	qboolean	respawned;
+	qboolean voting;
+	int vote;
 };
 
 

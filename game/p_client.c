@@ -1544,6 +1544,11 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	level.current_entity = ent;
 	client = ent->client;
+	if (client->dead && !client->respawned) {
+		player_die(ent, ent, ent, 1000000, vec3_origin);
+		spectator_respawn(ent);
+		return;
+	}
 	//gi.centerprintf(ent, "YOUR ROLE IS: %d", ent->role);
 	if (level.intermissiontime)
 	{
@@ -1724,6 +1729,7 @@ void ClientBeginServerFrame (edict_t *ent)
 {
 	gclient_t	*client;
 	int			buttonMask;
+
 
 	if (level.intermissiontime)
 		return;
