@@ -1549,6 +1549,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		spectator_respawn(ent);
 		return;
 	}
+	if (client->alertTimer > 0) {
+		gi.cprintf(ent, PRINT_HIGH, "On alert for %d more\n", client->alertTimer);
+		client->alertTimer--;
+	}
+	if (client->healTimer > 0) {
+		client->healTimer--;
+	}
 	//gi.centerprintf(ent, "YOUR ROLE IS: %d", ent->role);
 	if (level.intermissiontime)
 	{

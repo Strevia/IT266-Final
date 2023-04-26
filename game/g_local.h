@@ -964,6 +964,8 @@ struct gclient_s
 	qboolean	respawned;
 	qboolean voting;
 	int vote;
+	int alertTimer;
+	int healTimer;
 };
 
 

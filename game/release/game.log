@@ -1,0 +1,20 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(503,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  g_cmds.c
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(43,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(66,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(67,2): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(377,6): warning C4127: conditional expression is constant
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(731,4): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(734,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(817,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(818,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(819,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(830,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(837,2): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(883,7): warning C4459: declaration of 'st' hides global declaration
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_local.h(456,21): message : see declaration of 'st'
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(905,3): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(893,3): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\pnissen\Documents\git\IT266-Final\game\g_cmds.c(901,4): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     Creating library .\..\release\gamex86.lib and object .\..\release\gamex86.exp
+  game.vcxproj -> C:\Users\pnissen\Documents\git\IT266-Final\game\release\gamex86.dll

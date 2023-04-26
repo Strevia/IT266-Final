@@ -21,6 +21,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 #define MAXVOTES 16
 
+#define ROLETOWN 0
+#define ROLEMAF 1
+#define ROLESHERIFF 2
+#define ROLEVET 4
+#define ROLEDOC 6
+#define ROLEINVEST 8
+
+
 
 char *ClientTeam (edict_t *ent)
 {
@@ -898,11 +906,72 @@ void Cmd_PlayerList_f(edict_t *ent)
 	}
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
+
+void ActivateRole(edict_t* ent) {
+	vec3_t angles, forward;
+	vec3_t end = { 0 };
+	AngleVectors(ent->s.angles, forward, NULL, NULL);
+	VectorScale(forward, 300, angles);
+	VectorAdd(angles, ent->s.origin, end);
+	trace_t tr = gi.trace(ent->s.origin, NULL, NULL, end, ent, MASK_ALL);
+	if (ent->role == ROLEVET) {
+		ent->client->alertTimer = 2000;
+		gi.cprintf(ent, PRINT_HIGH, "ON ALERT\n");
+		return;
+	}
+	if (tr.ent && tr.ent->client) {
+		if (tr.ent->client->alertTimer) {
+			player_die(ent, ent, ent, 1000000, vec3_origin);
+			gi.cprintf(ent, PRINT_HIGH, "The vet killed you on alert\n");
+			return;
+		}
+		if (ent->role % 2 == ROLEMAF) {
+			if (tr.ent->client->healTimer) {
+				gi.cprintf(ent, PRINT_HIGH, "Healed by a doctor\n");
+				return;
+			}
+			if (tr.ent->role % 2 == ROLETOWN)
+				player_die(tr.ent, ent, ent, 100000, vec3_origin);
+
+		}
+		switch (ent->role) {
+			case ROLESHERIFF:
+				if (tr.ent->role % 2 == 1)
+					player_die(tr.ent, ent, ent, 100000, vec3_origin);
+				else
+					player_die(ent, ent, ent, 100000, vec3_origin);
+				break;
+			case ROLEDOC:
+				tr.ent->client->healTimer = 1000;
+				break;
+			case ROLEINVEST:
+				if (tr.ent->role % 2 == 1) {
+					gi.cprintf(ent, PRINT_HIGH, "This player is evil\n");
+				}
+				else {
+					gi.cprintf(ent, PRINT_HIGH, "This player is good\n");
+				}
+		}
+		return;
+	}
+	gi.cprintf(ent, PRINT_HIGH, "Couldn't find a player\n");
+}
+
 void Cmd_SetRole_f(edict_t* ent) {
 	char* p;
 	p = gi.args();
+	if (strcmp(p, "activate") == 0) {
+		ActivateRole(ent);
+		return;
+	}
 	ent->role = atoi(p);
 	gi.cprintf(ent, PRINT_HIGH, "Your role is %d", ent->role);
+}
+
+void Cmd_Revive(edict_t* ent) {
+	ent->client->dead = 0;
+	ent->client->respawned = 0;
+	respawn(ent);
 }
 
 void Cmd_Vote(edict_t* ent) {
@@ -1068,6 +1137,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_SetRole_f(ent);
 	else if (Q_stricmp(cmd, "vote") == 0)
 		Cmd_Vote(ent);
+	else if (Q_stricmp(cmd, "revive") == 0)
+		Cmd_Revive(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
