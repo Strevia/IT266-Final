@@ -21,13 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 #define MAXVOTES 16
 
-#define ROLETOWN 0
-#define ROLEMAF 1
-#define ROLESHERIFF 2
-#define ROLEVET 4
-#define ROLEDOC 6
-#define ROLEINVEST 8
-
 
 
 char *ClientTeam (edict_t *ent)
@@ -974,6 +967,15 @@ void Cmd_Revive(edict_t* ent) {
 	respawn(ent);
 }
 
+void Cmd_Game(edict_t* ent) {
+	char* p;
+	p = gi.args();
+	if (strcmp(p, "file")) {
+		ent->game = GAME_FILES;
+		ent->gameTimer = 2000;
+	}
+}
+
 void Cmd_Vote(edict_t* ent) {
 	char* p;
 	gclient_t *client;
@@ -1139,6 +1141,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_Vote(ent);
 	else if (Q_stricmp(cmd, "revive") == 0)
 		Cmd_Revive(ent);
+	else if (Q_stricmp(cmd, "mini") == 0)
+		Cmd_Game(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

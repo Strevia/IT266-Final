@@ -38,6 +38,8 @@ void SP_misc_teleporter_dest (edict_t *ent);
 
 void spectator_respawn(edict_t* ent);
 
+const char* ROLELOOKUP[] = { "Town", "Mafioso", "Sheriff", "Mafia", "Veteran", "Mafia", "Doctor", "Mafia", "Investigator" };
+
 static void SP_FixCoopSpots (edict_t *self)
 {
 	edict_t	*spot;
@@ -1537,6 +1539,7 @@ usually be a couple times for each server frame.
 */
 void ClientThink (edict_t *ent, usercmd_t *ucmd)
 {
+	gi.centerprintf(ent, "YOUR ROLE IS: %s\n", ROLELOOKUP[ent->role]);
 	gclient_t	*client;
 	edict_t	*other;
 	int		i, j;
@@ -1556,7 +1559,23 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	if (client->healTimer > 0) {
 		client->healTimer--;
 	}
-	//gi.centerprintf(ent, "YOUR ROLE IS: %d", ent->role);
+	if (ent->game) {
+		switch (ent->game) {
+			case GAME_FILES:
+				if (ent->gameTimer > 1000) {
+					gi.cprintf(ent, PRINT_HIGH, "Downloading... %d remaining\n", ent->gameTimer - 1000);
+				}
+				else if (ent->gameTimer == 0) {
+					gi.cprintf(ent, PRINT_HIGH, "Files completed");
+					ent->game = 0;
+				}
+				else {
+					gi.cprintf(ent, PRINT_HIGH, "Uploading... %d remaining\n", ent->gameTimer);
+				}
+				ent->gameTimer--;
+				break;
+		}
+	}
 	if (level.intermissiontime)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;
@@ -1586,8 +1605,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			client->ps.pmove.pm_type = PM_GIB;
 		else if (ent->deadflag)
 			client->ps.pmove.pm_type = PM_DEAD;
-		else
+		else {
 			client->ps.pmove.pm_type = PM_NORMAL;
+		}
 
 		client->ps.pmove.gravity = sv_gravity->value;
 		pm.s = client->ps.pmove;
@@ -1610,6 +1630,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		pm.pointcontents = gi.pointcontents;
 
 		// perform a pmove
+		if (pm.cmd.buttons) {
+			ent->game = 0;
+		}
 		gi.Pmove (&pm);
 
 		// save results of pmove

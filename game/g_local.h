@@ -81,6 +81,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define BODY_QUEUE_SIZE		8
 
+#define GAME_FILES 1
+
+#define ROLETOWN 0
+#define ROLEMAF 1
+#define ROLESHERIFF 2
+#define ROLEVET 4
+#define ROLEDOC 6
+#define ROLEINVEST 8
+
 typedef enum
 {
 	DAMAGE_NO,
@@ -1117,5 +1126,7 @@ struct edict_s
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
 	int				role;
+	int				gameTimer;
+	int				game;
 };
 
