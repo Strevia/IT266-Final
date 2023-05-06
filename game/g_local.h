@@ -82,6 +82,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define BODY_QUEUE_SIZE		8
 
 #define GAME_FILES 1
+#define GAME_CODE 2
+
+#define PRINT_TIME 200
 
 #define ROLETOWN 0
 #define ROLEMAF 1
@@ -1126,7 +1129,9 @@ struct edict_s
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
 	int				role;
-	int				gameTimer;
+	int				gameHelper;
 	int				game;
+	int				gameHelper2;
+	int printTimer;
 };
 

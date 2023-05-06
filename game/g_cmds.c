@@ -874,30 +874,30 @@ void Cmd_PlayerList_f(edict_t *ent)
 {
 	int i;
 	char st[80];
-	char text[1400];
-	edict_t *e2;
+char text[1400];
+edict_t* e2;
 
-	// connect time, ping, score, name
-	*text = 0;
-	for (i = 0, e2 = g_edicts + 1; i < maxclients->value; i++, e2++) {
-		if (!e2->inuse)
-			continue;
+// connect time, ping, score, name
+* text = 0;
+for (i = 0, e2 = g_edicts + 1; i < maxclients->value; i++, e2++) {
+	if (!e2->inuse)
+		continue;
 
-		sprintf(st, "%02d:%02d %4d %3d %s%s\n",
-			(level.framenum - e2->client->resp.enterframe) / 600,
-			((level.framenum - e2->client->resp.enterframe) % 600)/10,
-			e2->client->ping,
-			e2->client->resp.score,
-			e2->client->pers.netname,
-			e2->client->resp.spectator ? " (spectator)" : "");
-		if (strlen(text) + strlen(st) > sizeof(text) - 50) {
-			sprintf(text+strlen(text), "And more...\n");
-			gi.cprintf(ent, PRINT_HIGH, "%s", text);
-			return;
-		}
-		strcat(text, st);
+	sprintf(st, "%02d:%02d %4d %3d %s%s\n",
+		(level.framenum - e2->client->resp.enterframe) / 600,
+		((level.framenum - e2->client->resp.enterframe) % 600) / 10,
+		e2->client->ping,
+		e2->client->resp.score,
+		e2->client->pers.netname,
+		e2->client->resp.spectator ? " (spectator)" : "");
+	if (strlen(text) + strlen(st) > sizeof(text) - 50) {
+		sprintf(text + strlen(text), "And more...\n");
+		gi.cprintf(ent, PRINT_HIGH, "%s", text);
+		return;
 	}
-	gi.cprintf(ent, PRINT_HIGH, "%s", text);
+	strcat(text, st);
+}
+gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
 void ActivateRole(edict_t* ent) {
@@ -909,17 +909,20 @@ void ActivateRole(edict_t* ent) {
 	trace_t tr = gi.trace(ent->s.origin, NULL, NULL, end, ent, MASK_ALL);
 	if (ent->role == ROLEVET) {
 		ent->client->alertTimer = 2000;
+		ent->printTimer = PRINT_TIME;
 		gi.cprintf(ent, PRINT_HIGH, "ON ALERT\n");
 		return;
 	}
 	if (tr.ent && tr.ent->client) {
 		if (tr.ent->client->alertTimer) {
 			player_die(ent, ent, ent, 1000000, vec3_origin);
+			ent->printTimer = PRINT_TIME;
 			gi.cprintf(ent, PRINT_HIGH, "The vet killed you on alert\n");
 			return;
 		}
 		if (ent->role % 2 == ROLEMAF) {
 			if (tr.ent->client->healTimer) {
+				ent->printTimer = PRINT_TIME;
 				gi.cprintf(ent, PRINT_HIGH, "Healed by a doctor\n");
 				return;
 			}
@@ -928,22 +931,24 @@ void ActivateRole(edict_t* ent) {
 
 		}
 		switch (ent->role) {
-			case ROLESHERIFF:
-				if (tr.ent->role % 2 == 1)
-					player_die(tr.ent, ent, ent, 100000, vec3_origin);
-				else
-					player_die(ent, ent, ent, 100000, vec3_origin);
-				break;
-			case ROLEDOC:
-				tr.ent->client->healTimer = 1000;
-				break;
-			case ROLEINVEST:
-				if (tr.ent->role % 2 == 1) {
-					gi.cprintf(ent, PRINT_HIGH, "This player is evil\n");
-				}
-				else {
-					gi.cprintf(ent, PRINT_HIGH, "This player is good\n");
-				}
+		case ROLESHERIFF:
+			if (tr.ent->role % 2 == 1)
+				player_die(tr.ent, ent, ent, 100000, vec3_origin);
+			else
+				player_die(ent, ent, ent, 100000, vec3_origin);
+			break;
+		case ROLEDOC:
+			tr.ent->client->healTimer = 1000;
+			break;
+		case ROLEINVEST:
+			if (tr.ent->role % 2 == 1) {
+				ent->printTimer = PRINT_TIME;
+				gi.cprintf(ent, PRINT_HIGH, "This player is evil\n");
+			}
+			else {
+				ent->printTimer = PRINT_TIME;
+				gi.cprintf(ent, PRINT_HIGH, "This player is good\n");
+			}
 		}
 		return;
 	}
@@ -970,9 +975,43 @@ void Cmd_Revive(edict_t* ent) {
 void Cmd_Game(edict_t* ent) {
 	char* p;
 	p = gi.args();
-	if (strcmp(p, "file")) {
+	if (strcmp(p, "file") == 0) {
 		ent->game = GAME_FILES;
-		ent->gameTimer = 2000;
+		ent->gameHelper = 2000;
+	}
+	if (strcmp(p, "code") == 0) {
+		ent->game = GAME_CODE;
+		ent->gameHelper = rand() & 31;
+		ent->gameHelper2 = 5;
+	}
+	if (strcmp(p, "m") == 0) {
+		if (ent->game == GAME_CODE) {
+			if ((ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
+				ent->gameHelper2--;
+			}
+			else {
+				ent->printTimer = PRINT_TIME;
+				gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
+				ent->game = 0;
+			}
+		}
+	}
+	if (strcmp(p, "n") == 0) {
+		if (ent->game == GAME_CODE) {
+			if (!(ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
+				ent->gameHelper2--;
+			}
+			else {
+				ent->printTimer = PRINT_TIME;
+				gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
+				ent->game = 0;
+			}
+		}
+	}
+	if (ent->gameHelper2 == 0 && ent->game == GAME_CODE) {
+		ent->printTimer = PRINT_TIME;
+		gi.cprintf(ent, PRINT_HIGH, "Code success\n");
+		ent->game = 0;
 	}
 }
 

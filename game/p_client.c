@@ -800,12 +800,12 @@ edict_t *SelectFarthestDeathmatchSpawnPoint (void)
 
 	spot = NULL;
 	bestspot = NULL;
-	bestdistance = 0;
+	bestdistance = INT_MAX;
 	while ((spot = G_Find (spot, FOFS(classname), "info_player_deathmatch")) != NULL)
 	{
 		bestplayerdistance = PlayersRangeFromSpot (spot);
 
-		if (bestplayerdistance > bestdistance)
+		if (bestplayerdistance <= bestdistance)
 		{
 			bestspot = spot;
 			bestdistance = bestplayerdistance;
@@ -1539,11 +1539,17 @@ usually be a couple times for each server frame.
 */
 void ClientThink (edict_t *ent, usercmd_t *ucmd)
 {
-	gi.centerprintf(ent, "YOUR ROLE IS: %s\n", ROLELOOKUP[ent->role]);
+	if (ent->printTimer) {
+		ent->printTimer--;
+	}
+	if (!ent->game && !ent->printTimer) {
+		gi.centerprintf(ent, "YOUR ROLE IS: %s", ROLELOOKUP[ent->role]);
+	}
 	gclient_t	*client;
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
+	char toPrint[6];
 
 	level.current_entity = ent;
 	client = ent->client;
@@ -1562,18 +1568,29 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	if (ent->game) {
 		switch (ent->game) {
 			case GAME_FILES:
-				if (ent->gameTimer > 1000) {
-					gi.cprintf(ent, PRINT_HIGH, "Downloading... %d remaining\n", ent->gameTimer - 1000);
+				if (ent->gameHelper > 1000) {
+					gi.centerprintf(ent, "Downloading... %d remaining", ent->gameHelper - 1000);
 				}
-				else if (ent->gameTimer == 0) {
-					gi.cprintf(ent, PRINT_HIGH, "Files completed");
+				else if (ent->gameHelper == 0) {
+					gi.centerprintf(ent, "Files completed");
 					ent->game = 0;
 				}
 				else {
-					gi.cprintf(ent, PRINT_HIGH, "Uploading... %d remaining\n", ent->gameTimer);
+					gi.centerprintf(ent, "Uploading... %d remaining", ent->gameHelper);
 				}
-				ent->gameTimer--;
+				ent->gameHelper--;
 				break;
+			case GAME_CODE:
+				for (int i = 0; i < ent->gameHelper2; i++) {
+					if (ent->gameHelper & (1 << i)) {
+						toPrint[i] = 'm';
+					}
+					else {
+						toPrint[i] = 'n';
+					}
+				}
+				toPrint[ent->gameHelper2] = '\0';
+				gi.centerprintf(ent, "%s", toPrint);
 		}
 	}
 	if (level.intermissiontime)
@@ -1630,7 +1647,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		pm.pointcontents = gi.pointcontents;
 
 		// perform a pmove
-		if (pm.cmd.buttons) {
+		if (pm.cmd.buttons && ent->game == GAME_FILES) {
 			ent->game = 0;
 		}
 		gi.Pmove (&pm);
