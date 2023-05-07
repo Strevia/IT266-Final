@@ -718,7 +718,7 @@ float	PlayersRangeFromSpot (edict_t *spot)
 			continue;
 
 		VectorSubtract (spot->s.origin, player->s.origin, v);
-		playerdistance = VectorLength (v);
+		playerdistance = -VectorLength (v);
 
 		if (playerdistance < bestplayerdistance)
 			bestplayerdistance = playerdistance;
@@ -801,11 +801,11 @@ edict_t *SelectFarthestDeathmatchSpawnPoint (void)
 	spot = NULL;
 	bestspot = NULL;
 	bestdistance = INT_MAX;
-	while ((spot = G_Find (spot, FOFS(classname), "info_player_deathmatch")) != NULL)
+	//while ((spot = G_Find (spot, FOFS(classname), "info_player_deathmatch")) != NULL)
 	{
 		bestplayerdistance = PlayersRangeFromSpot (spot);
 
-		if (bestplayerdistance <= bestdistance)
+		if (bestplayerdistance > bestdistance)
 		{
 			bestspot = spot;
 			bestdistance = bestplayerdistance;
@@ -819,7 +819,7 @@ edict_t *SelectFarthestDeathmatchSpawnPoint (void)
 
 	// if there is a player just spawned on each and every start spot
 	// we have no choice to turn one into a telefrag meltdown
-	spot = G_Find (NULL, FOFS(classname), "info_player_deathmatch");
+	//spot = G_Find (NULL, FOFS(classname), "info_player_deathmatch");
 
 	return spot;
 }
@@ -828,8 +828,8 @@ edict_t *SelectDeathmatchSpawnPoint (void)
 {
 	if ( (int)(dmflags->value) & DF_SPAWN_FARTHEST)
 		return SelectFarthestDeathmatchSpawnPoint ();
-	else
-		return SelectRandomDeathmatchSpawnPoint ();
+	//else
+		//return SelectRandomDeathmatchSpawnPoint ();
 }
 
 
@@ -1572,6 +1572,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 					gi.centerprintf(ent, "Downloading... %d remaining", ent->gameHelper - 1000);
 				}
 				else if (ent->gameHelper == 0) {
+					ent->printTimer = PRINT_TIME;
 					gi.centerprintf(ent, "Files completed");
 					ent->game = 0;
 				}
@@ -1591,6 +1592,20 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 				}
 				toPrint[ent->gameHelper2] = '\0';
 				gi.centerprintf(ent, "%s", toPrint);
+				break;
+			case GAME_TEMP:
+				gi.centerprintf(ent, "Desired temp: %d, Current temp: %d", ent->gameHelper, ent->gameHelper + ent->gameHelper2);
+				break;
+			case GAME_FUEL:
+				gi.centerprintf(ent, "Press M to refuel; %d left", ent->gameHelper);
+				if (ent->gameHelper == 0) {
+					ent->printTimer = PRINT_TIME;
+					gi.centerprintf(ent, "Fuel filled");
+					ent->game = 0;
+				}
+				break;
+			case GAME_COUNT:
+				gi.centerprintf(ent, "Press M %d times, then press N.", ent->gameHelper2);
 		}
 	}
 	if (level.intermissiontime)

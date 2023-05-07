@@ -26,4 +26,21 @@ Thanks to Robert Duffy for doing the grunt work of building this release.
 John Carmack
 Id Software
 
+--- Phillip Nissen Mod---
+This is a mod for Quake 2 that adds several mechanics from Among Us, Town of Salem, and other similiar style games to Quake 2. Added features include:
+- GHOST MODE: If you die during a death match, you enter ghost mode. In ghost mode, you can fly around the map and watch the other players.
+- VOTING: You can begin a vote by typing the command "vote start". During an ongoing vote, any player can type "vote <number>" to vote for a player. A vote can be ended by typing the command "vote end". Once a vote ends, the player with the most votes will die.
+- ROLES: Five roles have been added. To assume a role, type the command "role <number>". To activate a role, type the command "role activate", or press r. The roles added include:
+    1. Mafioso, who can kill non-town players.
+    2. Sheriff, who can attempt to arrest a player. If this player is a mafioso, they will die. If the player is town, the sheriff will die.
+    4. Veteran, who can go on "alert". While on alert, any player who interacts with the veteran will die, and the veteran cannot be killed.
+    6. Doctor, who can heal a player. While a player is healed, they cannot be attacked.
+    8. Investigator, who can investigate a player. This will tell the investigator whether the player is good or evil.
+(Note with roles: 0 is considered a generic town role, while odd numbers between 3 and 7 are considered generic mafia roles).
+- MINIGAMES: Five minigames have been added. These can be played via the command "mini <name_of_minigame>". These include:
+    files: Stand still and wait for a file to be downloaded and then uploaded. This minigame succeeds once the file is fully uploaded, and fails if the player moves before then.
+    code: A code will appear on screen consisting of the letters M and N. Type them in the correct order to succeed. This minigame fails if the player types an incorrect key.
+    temp: A desired temperature and a current temeprature will appear on screen. Using the M key to make the current temperature go up, and N key to make it go down, make them equal. This minigame has no failure condition.
+    fuel: Empty the fuel gauge by pressing M the desired number of times. This minigame does not fail.
+    count: Press M the correct number of times, then press N to confirm. Fails if M is pressed an incorrect number of times.
 

@@ -83,6 +83,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define GAME_FILES 1
 #define GAME_CODE 2
+#define GAME_TEMP 3
+#define GAME_FUEL 4
+#define GAME_COUNT 5
 
 #define PRINT_TIME 200
 

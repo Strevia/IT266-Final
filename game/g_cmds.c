@@ -952,6 +952,7 @@ void ActivateRole(edict_t* ent) {
 		}
 		return;
 	}
+	ent->printTimer = PRINT_TIME;
 	gi.cprintf(ent, PRINT_HIGH, "Couldn't find a player\n");
 }
 
@@ -978,39 +979,78 @@ void Cmd_Game(edict_t* ent) {
 	if (strcmp(p, "file") == 0) {
 		ent->game = GAME_FILES;
 		ent->gameHelper = 2000;
+		ent->gameHelper2 = 1;
 	}
-	if (strcmp(p, "code") == 0) {
+	else if (strcmp(p, "code") == 0) {
 		ent->game = GAME_CODE;
 		ent->gameHelper = rand() & 31;
 		ent->gameHelper2 = 5;
 	}
-	if (strcmp(p, "m") == 0) {
-		if (ent->game == GAME_CODE) {
-			if ((ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
+	else if (strcmp(p, "temp") == 0) {
+		ent->game = GAME_TEMP;
+		ent->gameHelper = rand() & 31;
+		ent->gameHelper2 = rand() & 31;
+	}
+	else if (strcmp(p, "fuel") == 0) {
+		ent->game = GAME_FUEL;
+		ent->gameHelper = 20;
+		ent->gameHelper2 = 1;
+	}
+	else if (strcmp(p, "count") == 0) {
+		ent->game = GAME_COUNT;
+		ent->gameHelper = (rand() & 7) + 1;
+		ent->gameHelper2 = ent->gameHelper;
+	}
+	else if (strcmp(p, "m") == 0) {
+		switch (ent->game) {
+			case GAME_CODE:
+				if ((ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
+					ent->gameHelper2--;
+				}
+				else {
+					ent->printTimer = PRINT_TIME;
+					gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
+					ent->game = 0;
+				}
+				break;
+			case GAME_TEMP:
+				ent->gameHelper2++;
+				break;
+			case GAME_FUEL:
+				ent->gameHelper--;
+			case GAME_COUNT:
+				ent->gameHelper--;
+		}
+
+	}
+	else if (strcmp(p, "n") == 0) {
+		switch (ent->game) {
+			case GAME_CODE:
+				if (!(ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
+					ent->gameHelper2--;
+				}
+				else {
+					ent->printTimer = PRINT_TIME;
+					gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
+					ent->game = 0;
+				}
+				break;
+			case GAME_TEMP:
 				ent->gameHelper2--;
-			}
-			else {
-				ent->printTimer = PRINT_TIME;
-				gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
-				ent->game = 0;
-			}
+			case GAME_COUNT:
+				if (ent->gameHelper == 0) {
+					ent->gameHelper2 = 0;
+				}
+				else {
+					ent->game = 0;
+					ent->printTimer = PRINT_TIME;
+					gi.cprintf(ent, PRINT_HIGH, "Incorrect number of presses\n");
+				}
 		}
 	}
-	if (strcmp(p, "n") == 0) {
-		if (ent->game == GAME_CODE) {
-			if (!(ent->gameHelper & (1 << (ent->gameHelper2 - 1)))) {
-				ent->gameHelper2--;
-			}
-			else {
-				ent->printTimer = PRINT_TIME;
-				gi.cprintf(ent, PRINT_HIGH, "Code failure\n");
-				ent->game = 0;
-			}
-		}
-	}
-	if (ent->gameHelper2 == 0 && ent->game == GAME_CODE) {
+	if (ent->gameHelper2 == 0) {
 		ent->printTimer = PRINT_TIME;
-		gi.cprintf(ent, PRINT_HIGH, "Code success\n");
+		gi.cprintf(ent, PRINT_HIGH, "Success\n");
 		ent->game = 0;
 	}
 }
@@ -1023,6 +1063,7 @@ void Cmd_Vote(edict_t* ent) {
 	if (game.maxclients > MAXVOTES) {
 		return;
 	}
+	ent->printTimer = PRINT_TIME;
 	p = gi.args();
 	if (strcmp(p, "start") == 0) {
 		for (int i = 0; i < game.maxclients; i++) {
@@ -1083,6 +1124,18 @@ void Cmd_Vote(edict_t* ent) {
 	else {
 		int ourVote = atoi(p);
 		ent->client->vote = ourVote;
+	}
+}
+void Cmd_Tp(edict_t* ent) {
+	edict_t *ent2;
+	for (int i = 0; i < game.maxentities; i++) {
+		ent2 = &g_edicts[i];
+		if (ent2->client) {
+			
+			VectorCopy(ent2->pos1, ent->pos1);
+			VectorCopy(ent2->pos2, ent->pos2);
+			return;
+		}
 	}
 }
 
@@ -1182,6 +1235,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_Revive(ent);
 	else if (Q_stricmp(cmd, "mini") == 0)
 		Cmd_Game(ent);
+	else if (Q_stricmp(cmd, "tp") == 0)
+		Cmd_Tp(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
