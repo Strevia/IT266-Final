@@ -1037,6 +1037,7 @@ void Cmd_Game(edict_t* ent) {
 				break;
 			case GAME_TEMP:
 				ent->gameHelper2--;
+				break;
 			case GAME_COUNT:
 				if (ent->gameHelper == 0) {
 					ent->gameHelper2 = 0;
